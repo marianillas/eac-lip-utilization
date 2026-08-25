@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Fragment } from "react";
 
 function toDateInputValue(d) {
   return d.toISOString().slice(0, 10);
@@ -17,6 +17,16 @@ export default function UtilizationDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [expandedIds, setExpandedIds] = useState(() => new Set());
+
+  const togglePerson = (id) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -108,17 +118,37 @@ export default function UtilizationDashboard() {
               </tr>
             </thead>
             <tbody>
-              {data.perPerson.map((p) => (
-                <tr key={p.id} style={{ borderBottom: "1px solid #f4f4f4" }}>
-                  <td style={{ padding: "8px" }}>{p.name}</td>
-                  <td style={{ padding: "8px" }}>{p.totalHours}</td>
-                  <td style={{ padding: "8px" }}>{p.corePct}%</td>
-                  <td style={{ padding: "8px" }}>{p.overheadPct}%</td>
-                  <td style={{ padding: "8px" }}>
-                    <Bar corePct={p.corePct} />
-                  </td>
-                </tr>
-              ))}
+              {data.perPerson.map((p) => {
+                const isOpen = expandedIds.has(p.id);
+                return (
+                  <Fragment key={p.id}>
+                    <tr
+                      onClick={() => togglePerson(p.id)}
+                      style={{ borderBottom: "1px solid #f4f4f4", cursor: "pointer" }}
+                    >
+                      <td style={{ padding: "8px" }}>
+                        <span style={{ display: "inline-block", width: 14, color: "#999" }}>
+                          {isOpen ? "▾" : "▸"}
+                        </span>
+                        {p.name}
+                      </td>
+                      <td style={{ padding: "8px" }}>{p.totalHours}</td>
+                      <td style={{ padding: "8px" }}>{p.corePct}%</td>
+                      <td style={{ padding: "8px" }}>{p.overheadPct}%</td>
+                      <td style={{ padding: "8px" }}>
+                        <Bar corePct={p.corePct} />
+                      </td>
+                    </tr>
+                    {isOpen && (
+                      <tr style={{ borderBottom: "1px solid #f4f4f4" }}>
+                        <td colSpan={5} style={{ padding: "4px 8px 12px 30px", background: "#fafafa" }}>
+                          <PersonBreakdown breakdown={p.breakdown} />
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
               {data.perPerson.length === 0 && (
                 <tr>
                   <td colSpan={5} style={{ padding: 8, color: "#999" }}>
@@ -188,6 +218,47 @@ function StatCard({ label, pct, hours, color }) {
       <div style={{ fontSize: 13, color: "#666" }}>{label}</div>
       <div style={{ fontSize: 32, fontWeight: 700, color }}>{pct}%</div>
       <div style={{ fontSize: 13, color: "#999" }}>{hours} hrs</div>
+    </div>
+  );
+}
+
+function PersonBreakdown({ breakdown }) {
+  if (!breakdown || breakdown.length === 0) {
+    return <div style={{ fontSize: 13, color: "#999", padding: "4px 0" }}>No entries in this range.</div>;
+  }
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 480 }}>
+      {breakdown.map((space) => (
+        <div key={space.space}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: 13,
+              fontWeight: 600,
+              marginBottom: 2,
+            }}
+          >
+            <span>{space.space}</span>
+            <span>{space.hours} hrs</span>
+          </div>
+          {space.lists.map((list) => (
+            <div
+              key={list.list}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: 12,
+                color: "#666",
+                paddingLeft: 14,
+              }}
+            >
+              <span>{list.list}</span>
+              <span>{list.hours} hrs</span>
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }
