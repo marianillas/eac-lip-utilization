@@ -105,7 +105,7 @@ export default function UtilizationDashboard() {
       {data && (
         <>
           <section style={{ display: "flex", gap: 24, marginBottom: 32 }}>
-            <StatCard label="Core" pct={data.totals.corePct} hours={data.totals.coreHours} color="#2563eb" />
+            <StatCard label="Core" pct={data.totals.corePct} hours={data.totals.coreHours} color="#ff0049" />
             <StatCard label="Overhead" pct={data.totals.overheadPct} hours={data.totals.overheadHours} color="#9ca3af" />
           </section>
 
@@ -289,7 +289,7 @@ function SpaceListBreakdown({ breakdown }) {
 function Bar({ corePct }) {
   return (
     <div style={{ display: "flex", height: 8, borderRadius: 4, overflow: "hidden", background: "#eee" }}>
-      <div style={{ width: `${corePct}%`, background: "#2563eb" }} />
+      <div style={{ width: `${corePct}%`, background: "#ff0049" }} />
     </div>
   );
 }
