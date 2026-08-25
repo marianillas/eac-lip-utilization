@@ -17,16 +17,19 @@ export default function UtilizationDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
-  const [expandedIds, setExpandedIds] = useState(() => new Set());
+  const [expandedPeople, setExpandedPeople] = useState(() => new Set());
+  const [expandedWeeks, setExpandedWeeks] = useState(() => new Set());
 
-  const togglePerson = (id) => {
-    setExpandedIds((prev) => {
+  const toggleInSet = (setter) => (key) => {
+    setter((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   };
+  const togglePerson = toggleInSet(setExpandedPeople);
+  const toggleWeek = toggleInSet(setExpandedWeeks);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -119,7 +122,7 @@ export default function UtilizationDashboard() {
             </thead>
             <tbody>
               {data.perPerson.map((p) => {
-                const isOpen = expandedIds.has(p.id);
+                const isOpen = expandedPeople.has(p.id);
                 return (
                   <Fragment key={p.id}>
                     <tr
@@ -142,7 +145,7 @@ export default function UtilizationDashboard() {
                     {isOpen && (
                       <tr style={{ borderBottom: "1px solid #f4f4f4" }}>
                         <td colSpan={5} style={{ padding: "4px 8px 12px 30px", background: "#fafafa" }}>
-                          <PersonBreakdown breakdown={p.breakdown} />
+                          <SpaceListBreakdown breakdown={p.breakdown} />
                         </td>
                       </tr>
                     )}
@@ -170,14 +173,34 @@ export default function UtilizationDashboard() {
               </tr>
             </thead>
             <tbody>
-              {data.perWeek.map((w) => (
-                <tr key={w.week} style={{ borderBottom: "1px solid #f4f4f4" }}>
-                  <td style={{ padding: "8px" }}>{w.week}</td>
-                  <td style={{ padding: "8px" }}>{w.coreHours}</td>
-                  <td style={{ padding: "8px" }}>{w.overheadHours}</td>
-                  <td style={{ padding: "8px" }}>{w.corePct}%</td>
-                </tr>
-              ))}
+              {data.perWeek.map((w) => {
+                const isOpen = expandedWeeks.has(w.week);
+                return (
+                  <Fragment key={w.week}>
+                    <tr
+                      onClick={() => toggleWeek(w.week)}
+                      style={{ borderBottom: "1px solid #f4f4f4", cursor: "pointer" }}
+                    >
+                      <td style={{ padding: "8px" }}>
+                        <span style={{ display: "inline-block", width: 14, color: "#999" }}>
+                          {isOpen ? "▾" : "▸"}
+                        </span>
+                        {w.week}
+                      </td>
+                      <td style={{ padding: "8px" }}>{w.coreHours}</td>
+                      <td style={{ padding: "8px" }}>{w.overheadHours}</td>
+                      <td style={{ padding: "8px" }}>{w.corePct}%</td>
+                    </tr>
+                    {isOpen && (
+                      <tr style={{ borderBottom: "1px solid #f4f4f4" }}>
+                        <td colSpan={4} style={{ padding: "4px 8px 12px 30px", background: "#fafafa" }}>
+                          <SpaceListBreakdown breakdown={w.breakdown} />
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
               {data.perWeek.length === 0 && (
                 <tr>
                   <td colSpan={4} style={{ padding: 8, color: "#999" }}>
@@ -222,7 +245,7 @@ function StatCard({ label, pct, hours, color }) {
   );
 }
 
-function PersonBreakdown({ breakdown }) {
+function SpaceListBreakdown({ breakdown }) {
   if (!breakdown || breakdown.length === 0) {
     return <div style={{ fontSize: 13, color: "#999", padding: "4px 0" }}>No entries in this range.</div>;
   }
