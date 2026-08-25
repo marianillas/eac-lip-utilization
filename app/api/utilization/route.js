@@ -7,7 +7,8 @@ import { getTimeEntries, summarizeUtilization } from "@/lib/clickup-utilization"
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
 
-  const track = searchParams.get("track") === "lip" ? "lip" : "eac";
+  const trackParam = searchParams.get("track");
+  const track = trackParam === "lip" || trackParam === "total" ? trackParam : "eac";
   const start = searchParams.get("start");
   const end = searchParams.get("end");
 

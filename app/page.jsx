@@ -52,6 +52,9 @@ export default function UtilizationDashboard() {
         <TabButton active={track === "lip"} onClick={() => setTrack("lip")}>
           LIP
         </TabButton>
+        <TabButton active={track === "total"} onClick={() => setTrack("total")}>
+          Total
+        </TabButton>
       </div>
 
       <div style={{ display: "flex", gap: 12, alignItems: "end", marginBottom: 24, flexWrap: "wrap" }}>
